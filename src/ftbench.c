@@ -66,8 +66,7 @@
 
 
   typedef int
-  (*bcall_t)( btimer_t*  timer,
-              FT_Face    face,
+  (*bcall_t)( FT_Face    face,
               void*      user_data );
 
 
@@ -271,35 +270,35 @@
              double    max_time )
   {
     int       n, done;
-    btimer_t  timer, elapsed;
+    btimer_t  timer;
 
 
     if ( test->cache_first )
     {
       TIMER_RESET( &timer );
-      test->bench( &timer, face, test->user_data );
+      test->bench( face, test->user_data );
     }
 
     printf( "  %-25s ", test->title );
     fflush( stdout );
 
     TIMER_RESET( &timer );
-    TIMER_RESET( &elapsed );
+
 
     for ( n = 0, done = 0; !max_iter || n < max_iter; n++ )
     {
-      TIMER_START( &elapsed );
+      TIMER_START( &timer );
 
-      done += test->bench( &timer, face, test->user_data );
+      done += test->bench( face, test->user_data );
 
-      TIMER_STOP( &elapsed );
+      TIMER_STOP( &timer );
 
-      if ( TIMER_GET( &elapsed ) > 1E6 * max_time )
+      if ( TIMER_GET( &timer ) > 1E6 * max_time )
         break;
     }
 
     if ( done )
-      printf( "%10.3f us/op %10d done\n",
+      printf( "%10.3f microseconds %10d done\n",
               TIMER_GET( &timer ) / (double)done, done );
     else
       printf( "no error-free calls\n" );
@@ -311,8 +310,7 @@
    */
 
   static int
-  test_load( btimer_t*  timer,
-             FT_Face    face,
+  test_load( FT_Face    face,
              void*      user_data )
   {
     int  i, done = 0;
@@ -320,23 +318,18 @@
     FT_UNUSED( user_data );
 
 
-    TIMER_START( timer );
-
     FOREACH( i )
     {
       if ( !FT_Load_Glyph( face, (FT_UInt)i, load_flags ) )
         done++;
     }
 
-    TIMER_STOP( timer );
-
     return done;
   }
 
 
   static int
-  test_load_advances( btimer_t*  timer,
-                      FT_Face    face,
+  test_load_advances( FT_Face    face,
                       void*      user_data )
   {
     int        done = 0;
@@ -358,14 +351,10 @@
 
     advances = (FT_Fixed *)calloc( sizeof ( FT_Fixed ), (size_t)count );
 
-    TIMER_START( timer );
-
     FT_Get_Advances( face,
                      (FT_UInt)start, (FT_UInt)count,
                      (FT_Int32)flags, advances );
     done += (int)count;
-
-    TIMER_STOP( timer );
 
     free( advances );
 
@@ -374,8 +363,7 @@
 
 
   static int
-  test_render( btimer_t*  timer,
-               FT_Face    face,
+  test_render( FT_Face    face,
                void*      user_data )
   {
     int  i, done = 0;
@@ -388,10 +376,8 @@
       if ( FT_Load_Glyph( face, (FT_UInt)i, load_flags ) )
         continue;
 
-      TIMER_START( timer );
       if ( !FT_Render_Glyph( face->glyph, render_mode ) )
-        done++;
-      TIMER_STOP( timer );
+          done++;
     }
 
     return done;
@@ -399,8 +385,7 @@
 
 
   static int
-  test_embolden( btimer_t*  timer,
-                 FT_Face    face,
+  test_embolden( FT_Face    face,
                  void*      user_data )
   {
     int  i, done = 0;
@@ -413,10 +398,8 @@
       if ( FT_Load_Glyph( face, (FT_UInt)i, load_flags ) )
         continue;
 
-      TIMER_START( timer );
       FT_GlyphSlot_Embolden( face->glyph );
       done++;
-      TIMER_STOP( timer );
     }
 
     return done;
@@ -424,8 +407,7 @@
 
 
   static int
-  test_stroke( btimer_t*  timer,
-               FT_Face    face,
+  test_stroke( FT_Face    face,
                void*      user_data )
   {
     FT_Glyph    glyph;
@@ -449,9 +431,7 @@
            FT_Get_Glyph( face->glyph, &glyph )            )
         continue;
 
-      TIMER_START( timer );
       FT_Glyph_Stroke( &glyph, stroker, 1 );
-      TIMER_STOP( timer );
 
       FT_Done_Glyph( glyph );
       done++;
@@ -464,8 +444,7 @@
 
 
   static int
-  test_get_glyph( btimer_t*  timer,
-                  FT_Face    face,
+  test_get_glyph( FT_Face    face,
                   void*      user_data )
   {
     FT_Glyph  glyph;
@@ -480,13 +459,11 @@
       if ( FT_Load_Glyph( face, (FT_UInt)i, load_flags ) )
         continue;
 
-      TIMER_START( timer );
       if ( !FT_Get_Glyph( face->glyph, &glyph ) )
       {
         FT_Done_Glyph( glyph );
         done++;
       }
-      TIMER_STOP( timer );
     }
 
     return done;
@@ -494,8 +471,7 @@
 
 
   static int
-  test_get_cbox( btimer_t*  timer,
-                 FT_Face    face,
+  test_get_cbox( FT_Face    face,
                  void*      user_data )
   {
     FT_Glyph  glyph;
@@ -514,9 +490,7 @@
       if ( FT_Get_Glyph( face->glyph, &glyph ) )
         continue;
 
-      TIMER_START( timer );
       FT_Glyph_Get_CBox( glyph, FT_GLYPH_BBOX_PIXELS, &bbox );
-      TIMER_STOP( timer );
 
       FT_Done_Glyph( glyph );
       done++;
@@ -527,8 +501,7 @@
 
 
   static int
-  test_get_bbox( btimer_t*  timer,
-                 FT_Face    face,
+  test_get_bbox( FT_Face    face,
                  void*      user_data )
   {
     FT_BBox    bbox;
@@ -543,9 +516,7 @@
       if ( FT_Load_Glyph( face, (FT_UInt)i, load_flags ) )
         continue;
 
-      TIMER_START( timer );
       FT_Outline_Get_BBox( &face->glyph->outline, &bbox );
-      TIMER_STOP( timer );
 
       done++;
     }
@@ -555,15 +526,12 @@
 
 
   static int
-  test_get_char_index( btimer_t*  timer,
-                       FT_Face    face,
+  test_get_char_index( FT_Face    face,
                        void*      user_data )
   {
     bcharset_t*  charset = (bcharset_t*)user_data;
     int          i, done = 0;
 
-
-    TIMER_START( timer );
 
     for ( i = 0; i < charset->size; i++ )
     {
@@ -571,15 +539,12 @@
         done++;
     }
 
-    TIMER_STOP( timer );
-
     return done;
   }
 
 
   static int
-  test_cmap_cache( btimer_t*  timer,
-                   FT_Face    face,
+  test_cmap_cache( FT_Face    face,
                    void*      user_data )
   {
     bcharset_t*  charset = (bcharset_t*)user_data;
@@ -587,8 +552,6 @@
 
     FT_UNUSED( face );
 
-
-    TIMER_START( timer );
 
     for ( i = 0; i < charset->size; i++ )
     {
@@ -599,15 +562,12 @@
         done++;
     }
 
-    TIMER_STOP( timer );
-
     return done;
   }
 
 
   static int
-  test_image_cache( btimer_t*  timer,
-                    FT_Face    face,
+  test_image_cache( FT_Face    face,
                     void*      user_data )
   {
     FT_Glyph  glyph;
@@ -616,9 +576,6 @@
 
     FT_UNUSED( face );
     FT_UNUSED( user_data );
-
-
-    TIMER_START( timer );
 
     FOREACH( i )
     {
@@ -630,15 +587,12 @@
         done++;
     }
 
-    TIMER_STOP( timer );
-
     return done;
   }
 
 
   static int
-  test_sbit_cache( btimer_t*  timer,
-                   FT_Face    face,
+  test_sbit_cache( FT_Face    face,
                    void*      user_data )
   {
     FTC_SBit  glyph;
@@ -647,9 +601,6 @@
 
     FT_UNUSED( face );
     FT_UNUSED( user_data );
-
-
-    TIMER_START( timer );
 
     FOREACH( i )
     {
@@ -661,15 +612,12 @@
         done++;
     }
 
-    TIMER_STOP( timer );
-
     return done;
   }
 
 
   static int
-  test_cmap_iter( btimer_t*  timer,
-                  FT_Face    face,
+  test_cmap_iter( FT_Face    face,
                   void*      user_data )
   {
     FT_UInt   idx;
@@ -679,23 +627,18 @@
     FT_UNUSED( user_data );
 
 
-    TIMER_START( timer );
-
     charcode = FT_Get_First_Char( face, &idx );
     done = ( idx != 0 );
 
     while ( idx != 0 )
       charcode = FT_Get_Next_Char( face, charcode, &idx );
 
-    TIMER_STOP( timer );
-
-    return done;
+        return done;
   }
 
 
   static int
-  test_new_face( btimer_t*  timer,
-                 FT_Face    face,
+  test_new_face( FT_Face    face,
                  void*      user_data )
   {
     FT_Face  bench_face;
@@ -704,20 +647,15 @@
     FT_UNUSED( user_data );
 
 
-    TIMER_START( timer );
-
     if ( !get_face( &bench_face ) )
       FT_Done_Face( bench_face );
 
-    TIMER_STOP( timer );
-
-    return 1;
+        return 1;
   }
 
 
   static int
-  test_new_face_and_load_glyph( btimer_t*  timer,
-                                FT_Face    face,
+  test_new_face_and_load_glyph( FT_Face    face,
                                 void*      user_data )
   {
     FT_Face  bench_face;
@@ -727,8 +665,6 @@
     FT_UNUSED( face );
     FT_UNUSED( user_data );
 
-
-    TIMER_START( timer );
 
     if ( !get_face( &bench_face ) )
     {
@@ -740,8 +676,6 @@
 
       FT_Done_Face( bench_face );
     }
-
-    TIMER_STOP( timer );
 
     return done;
   }
@@ -1098,6 +1032,10 @@
   {
     FT_Face   face;
     FT_Error  error;
+    btimer_t total;
+
+    TIMER_RESET(&total);
+    TIMER_START(&total);
 
     unsigned long  max_bytes      = CACHE_SIZE * 1024;
     char*          test_string    = NULL;
@@ -1601,6 +1539,9 @@
         break;
       }
     }
+TIMER_STOP(&total);
+    double total_time = TIMER_GET(&total);
+    printf("\nTotal time: %.0fs\n", total_time/1000000);
 
     if ( cache_man )
       FTC_Manager_Done( cache_man );
