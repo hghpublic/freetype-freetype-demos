@@ -196,6 +196,86 @@
   /************************************************************************/
   /************************************************************************/
   /*****                                                              *****/
+  /*****                BLITTING ROUTINES FOR R10G10B10A2             *****/
+  /*****                                                              *****/
+  /************************************************************************/
+  /************************************************************************/
+
+  static void
+  gr_x11_convert_rgb_to_r10g10b10a2( grX11Blitter*  blit )
+  {
+    unsigned char*  line_read  = blit->src_line + blit->x * 3;
+    unsigned char*  line_write = blit->dst_line + blit->x * 4;
+    int             h          = blit->height;
+
+
+    for ( ; h > 0; h-- )
+    {
+      unsigned char*   lread  = line_read;
+      unsigned int*    lwrite = (unsigned int*)line_write;
+      int              x      = blit->width;
+
+
+      for ( ; x > 0; x--, lread += 3, lwrite++ )
+      {
+        unsigned int  r = lread[0];
+        unsigned int  g = lread[1];
+        unsigned int  b = lread[2];
+
+
+        lwrite[0] = (unsigned int)( ( ( r << 2 ) & 0x3FF ) |
+                                    ( ( g << 12 ) & 0xFFC00 ) |
+                                    ( ( b << 22 ) & 0x3FF00000 ) );
+      }
+
+      line_read  += blit->src_pitch;
+      line_write += blit->dst_pitch;
+    }
+  }
+
+
+  static void
+  gr_x11_convert_gray_to_r10g10b10a2( grX11Blitter*  blit )
+  {
+    unsigned char*  line_read  = blit->src_line + blit->x;
+    unsigned char*  line_write = blit->dst_line + blit->x * 2;
+    int             h          = blit->height;
+
+
+    for ( ; h > 0; h-- )
+    {
+      unsigned char*   lread  = line_read;
+      unsigned int*    lwrite = (unsigned int*)line_write;
+      int              x      = blit->width;
+
+
+      for ( ; x > 0; x--, lread++, lwrite++ )
+      {
+        unsigned int  p = lread[0];
+
+
+        lwrite[0] = (unsigned int)( ( ( p << 2 ) & 0x3FF ) |
+                                    ( ( p << 12 ) & 0xFFC00 ) |
+                                    ( ( p << 22 ) & 0x3FF00000 ) );
+      }
+
+      line_read  += blit->src_pitch;
+      line_write += blit->dst_pitch;
+    }
+  }
+
+
+  static const grX11Format  gr_x11_format_r10g10b10a2 =
+  {
+    30, 32, 0x3FF, 0xFFC00, 0x3FF00000,
+    gr_x11_convert_rgb_to_r10g10b10a2,
+    gr_x11_convert_gray_to_r10g10b10a2
+  };
+
+
+  /************************************************************************/
+  /************************************************************************/
+  /*****                                                              *****/
   /*****                BLITTING ROUTINES FOR RGB565                  *****/
   /*****                                                              *****/
   /************************************************************************/
@@ -805,6 +885,7 @@
 
   static const grX11Format*  gr_x11_formats[] =
   {
+    &gr_x11_format_r10g10b10a2,
     &gr_x11_format_rgb0888,
     &gr_x11_format_bgr0888,
     &gr_x11_format_rgb8880,
