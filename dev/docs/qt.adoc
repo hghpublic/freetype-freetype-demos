@@ -1,0 +1,25 @@
+= Qt
+:toc:
+:sectnums:
+
+== Qt for Linux
+
+https://doc.qt.io/qt-6/linux.html
+
+
+== Qt for Linux - Alternative ways of installing Qt
+
+
+https://doc.qt.io/qt-6/linux-alternative-installers.html
+
+
+----
+apt list qt6-*dev*
+
+sudo apt install qt6-{base,declarative}-dev
+
+
+sudo apt install qt6-*{dev,doc}* qtcreator cmake clazy g++
+
+sudo apt install qt6-*{dev,doc}* qtcreator clazy
+----

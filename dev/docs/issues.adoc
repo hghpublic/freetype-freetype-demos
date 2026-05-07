@@ -1,0 +1,38 @@
+= Issues
+
+
+== xtest
+
+
+----
+grInit()
+grNewScreenSurface
+grSetSurfaceRefresh
+
+
+[main] Building folder: /workspaces/freetype-freetype-demos/build xtest
+[build] Starting build
+[proc] Executing command: /usr/local/bin/cmake --build /workspaces/freetype-freetype-demos/build --config Debug --target xtest --
+[build] [1/2  50% :: 0.020] Building C object graph/CMakeFiles/xtest.dir/xtest.c.o
+[build] FAILED: graph/CMakeFiles/xtest.dir/xtest.c.o 
+[build] /usr/bin/aarch64-linux-gnu-gcc-14   -g -std=gnu2x -MD -MT graph/CMakeFiles/xtest.dir/xtest.c.o -MF graph/CMakeFiles/xtest.dir/xtest.c.o.d -o graph/CMakeFiles/xtest.dir/xtest.c.o -c /workspaces/freetype-freetype-demos/graph/xtest.c
+[build] /workspaces/freetype-freetype-demos/graph/xtest.c: In function 'main':
+[build] /workspaces/freetype-freetype-demos/graph/xtest.c:56:3: error: implicit declaration of function 'grInit' [-Wimplicit-function-declaration]
+[build]    56 |   grInit();
+[build]       |   ^~~~~~
+[build] /workspaces/freetype-freetype-demos/graph/xtest.c:57:13: error: implicit declaration of function 'grNewScreenSurface'; did you mean 'grRefreshSurface'? [-Wimplicit-function-declaration]
+[build]    57 |   surface = grNewScreenSurface( 0, gr_pixel_mode_gray, 320, 400, 128 );
+[build]       |             ^~~~~~~~~~~~~~~~~~
+[build]       |             grRefreshSurface
+[build] /workspaces/freetype-freetype-demos/graph/xtest.c:57:11: error: assignment to 'grSurface *' {aka 'struct grSurface_ *'} from 'int' makes pointer from integer without a cast [-Wint-conversion]
+[build]    57 |   surface = grNewScreenSurface( 0, gr_pixel_mode_gray, 320, 400, 128 );
+[build]       |           ^
+[build] /workspaces/freetype-freetype-demos/graph/xtest.c:67:5: error: implicit declaration of function 'grSetSurfaceRefresh' [-Wimplicit-function-declaration]
+[build]    67 |     grSetSurfaceRefresh( surface, 1 );
+[build]       |     ^~~~~~~~~~~~~~~~~~~
+[build] ninja: build stopped: subcommand failed.
+[proc] The command: /usr/local/bin/cmake --build /workspaces/freetype-freetype-demos/build --config Debug --target xtest -- exited with code: 1
+[driver] Build completed: 00:00:00.037
+[build] Build finished with exit code 1
+
+----

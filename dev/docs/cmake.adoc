@@ -1,0 +1,6 @@
+= cmake
+
+
+== Introducing CMake Debugger in VS Code: Debug your CMake Scripts using Open-Source CMake Debugger
+
+https://devblogs.microsoft.com/cppblog/introducing-cmake-debugger-in-vs-code-debug-your-cmake-scripts-using-open-source-cmake-debugger/

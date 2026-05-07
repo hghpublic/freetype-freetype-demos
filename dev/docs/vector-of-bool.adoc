@@ -1,0 +1,15 @@
+= vector-of-bool
+
+https://vector-of-bool.github.io/
+
+== CMake Tools for Visual Studio Code
+
+https://vector-of-bool.github.io/docs/vscode-cmake-tools/index.html
+
+== Target Debugging and Launching¶
+
+https://vector-of-bool.github.io/docs/vscode-cmake-tools/debugging.html
+
+== Get started with CMake Tools on Linux
+
+https://code.visualstudio.com/docs/cpp/cmake-linux
