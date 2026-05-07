@@ -1,0 +1,47 @@
+= freetype-demos
+:toc:
+:sectnums:
+ifndef::env-github[:icons: font]
+:note-caption: :paperclip:
+:important-caption: :exclamation:
+:warning-caption: :warning:
+
+[IMPORTANT]
+====
+The commit history of this branch is volatile. +
+Rebasing and force pushing happens at will. +
+The commits in this branch mostly collect changes with a narrow scope. +
+They rarely document code evolution. +
+The history may be rewritten without notice.
+====
+
+== freetype-demos
+
+
+== Allegro 4
+
+https://github.com/liballeg/allegro4
+
+----
+sudo apt install liballegro4-dev
+----
+
+
+== Demos
+
+----
+ ./ftview $DEV_ROOT/fonts/google/Roboto/OpenSans-Regular.ttf
+
+
+❯ ./ftview $DEV_ROOT/fonts/google/Roboto/OpenSans-Regular.ttf 
+could not allocate display surface
+  error = 0x0000, no error
+----
+
+== convert man pages
+
+https://pandoc.org/demos.html
+
+----
+pandoc -s ftview.1 -t asciidoc -o ftview.adoc
+----
