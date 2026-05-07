@@ -1,0 +1,10 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "ft2demos",
+    "version": "2.14.3",
+    "dependencies": [
+        "freetype",
+        "libpng",
+        "zlib"
+    ]
+}
