@@ -72,14 +72,14 @@ int  main( void )
       for ( n = 0; n < 128; n++ )
       {
         color.value = (n*3) & 127;
-        grWriteCellChar( surface,
+        grWriteCellChar( (grBitmap*)surface,
                          x + ((n % 60) << 3),
                          80 + (x+10)*8*3 + ((n/60) << 3), n, color );
       }
 
     }
     color.value = 64;
-    grWriteCellString( surface, 0, 0, "just an example", color );
+    grWriteCellString( (grBitmap*)surface, 0, 0, "just an example", color );
 
     do
     {
@@ -114,7 +114,7 @@ int  main( void )
           kname = kname_temp;
         }
 
-        grWriteCellString( surface, 30, 30, kname, color );
+        grWriteCellString( (grBitmap*)surface, 30, 30, kname, color );
         grRefreshSurface(surface);
       }
     } while (1);
