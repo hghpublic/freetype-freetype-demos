@@ -1,0 +1,278 @@
+= MiGS Overview
+A Minimalist Graphics Subsystem
+:toc:
+
+== Introduction
+
+
+This document details the design and implementation of `MiGS`, the
+minimalist graphics subsystem used by the `FreeType 2` demonstration
+programs. Its purpose is mainly to help writers of new demo programs, as
+well as developers who would like port the subsystem to other platforms.
+
+== I - Design goals
+
+`MiGS` is a tiny graphics subsystem used to demo text rendering through
+the `FreeType` library. It was mainly written to provide the abilities to:
+
+- draw a monochrome glyph bitmap to many kinds of target surfaces (i.e.
+really bitmaps/pixmaps)
+- draw an anti-aliased glyph bitmap, with any level of grays, to many
+kinds of target surfaces
+- display a simple window on many systems like X11, OS/2 and Windows
+- accept simple events (keypresses and mouse buttons) in this window.
+- to be portable and present a unified API on all running systems
+
+`MiGS` uses system-specific "drivers" in order to perform display and
+event handling. The blitting functions are not device-specific. `MiGS` can
+be built and/or used with no system-specific features, like for example,
+to generate simple `GIF`, `PNG`, `TIFF`, etc.. images without ever needing to
+display them.
+
+
+== II - Surfaces, bitmaps and windows
+
+
+A surface in `MiGS` models a drawable region where glyph images can be
+rendered, a surface always contains a bitmap descriptor as well as a few
+other things that will be described later in this section.
+
+Some surfaces can be displayed, they are then either called _windowed
+surfaces_ or _screen surfaces_ depending on the nature of the _device_
+used to display them. Each _device_ is implemented by a very simple
+_driver_ in the `MiGS` code. Here are a few example devices that are or
+could be written to display surfaces :
+
+- an X11 device +
+- a Windows GDI device +
+- an OS/2 Presentation Manager device +
+- a fullscreen SVGALib device on Linux +
+- a GGI visual device +
+- an OS/2 "Dive" device, or the equivalent Win32 "DirectX" device
+
+etc..
+
+[NOTE]
+====
+For now, only the X11 and Windows GDI device was written and tested. More devices should come later.
+====
+
+Before explaining how to create a surface, we need to explain how MiGS
+manages bitmaps and renders glyph images to them.
+
+=== 1. Bitmaps:
+
+A bitmap in MiGS features the following things :
+
+* a *_width_* in pixels
+* a *_height_* in pixels
+* a *_pixel mode_*, which indicates how the pixels are stored in the
+surface's buffer
+* a *_pitch_*, whose absolute values is the number of bytes taken by
+each surface row
+* a *_number_* of valid *_gray_* levels (see below)
+* a *_buffer_*, holding the surface's pixels
+
+MiGS uses the _"Y downwards"_ convention, which means that _increasing
+Y_ coordinates correspond to _lower rows_ of the bitmap. Hence, the
+coordinate _(0,0)_ always corresponds to the bitmap's _top-left pixel_.
+
+The bitmap's rows can be stored either _"downwards"_ or _"upwards"_ in
+the pixel buffer.
+
+In the first case (_downwards_), increasing memory addresses in the
+pixel buffer correspond to lower rows of the bitmap(e.g. PC video
+modes), and the *_pitch_* should be equal to *_the number of bytes taken
+by each row_*. The first pixel buffer byte corresponds to the upper row.
+
+In the second case (_upwards_), increasing memory addresses in the pixel
+buffer correspond to upper rows of the bitmap and the *_pitch_* should
+be equal to the *_opposite_* of _the number of bytes taken by each row_.
+The first pixel buffer byte corresponds to the lower row.
+
+In all cases, the *_pitch_* is the _increment to be used to go from one
+bitmap row to the one below it_.
+
+The supported pixel modes are :
+
+* 1-bit monochrome bitmaps. With "0" as the background, and "1" as the
+foreground.
+* 4-bit color bitmaps, using an arbitrary palette.
+* 8-bit color bitmaps, using an arbitrary palette.
+* 8-bit gray bitmaps, using a given N number of gray levels in the range
+0..N-1.
+* 15-bit color bitmaps, also known as RGB555
+* 16-bit color bitmaps, also known as RGB565
+* 24-bit color bitmaps, also known as RGB
+* 32-bit color bitmaps, also known as RGBA (though the A is ignored by
+MiGS)
+
+The bitmap's *_number of gray levels_* is only relevant for *_8-bit gray
+bitmaps_*, and indicates the range of gray levels that can be found in
+the bitmap. If a bitmap as N gray levels, it is said to be
+_N-grayscales_, and the pixels within it must all have values between 0,
+considered as the _background_ color, and N-1, considered as the
+_foreground_ color.
+
+N-grayscale bitmaps are crucial for the rendering of anti-aliased
+text.
+
+
+=== 2. Glyph images:
+
+
+The glyph images that can be drawn on bitmaps through MiGS are bitmaps
+themselves, though limited to the following pixel modes :
+
+1-bit monochrome glyph bitmaps::
+
+
+These can be drawn on any kind of bitmap. Note that _only the "lit"
+pixels_ (i.e. the bits set to 1) are effectively drawn to the target, as
+opaque blitting isn't supported (remember, it's a minimalist library !)
+
+
+
+N-grayscales glyph images (with any value of N ++>++= 2)::
+
+
+These can be drawn to _all RGB bitmaps_ (15, 16, 24 & 32 bits/pixel), as
+well as any other M-grayscales bitmaps. In the latter case, the values
+of N and M _need not be equal_, as the library is able to perform
+automatic conversions _on the fly_.
+
+For example, it is possible to render a 5-grayscales glyph image into a
+128-grayscales bitmap. Moreover, it is also possible to render a
+17-grayscales glyph image into a 5-grayscales bitmap, even if this will
+result in _a loss of quality_. This feature is crucial in order to
+experiment easily with other anti-aliasing algorithms for FreeType 
+
+
+Note that you can _only_ draw _monochrome_ bitmaps to the following
+pixel modes : monochrome, 4-bit color and 8-bit color.
+
+
+
+=== 3. Windows and Screens:
+
+
+In order to debug FreeType, displaying a surface in a window or in
+full-screen mode, is required. MiGS thus makes a difference between
+_simple surfaces_, which only contain a bitmap, _windowed surfaces_,
+which are used to display their content in a window, and _screen
+surfaces_, which are used to display their content in a full-screen mode
+(SVGAlib, DirectX, GGI or whatever).
+
+A few important things must be said about non-simple surfaces. 
+
+
+* First, they might contain some system-specific data which is used to
+manage the display in a window or on the screen. This must be
+_completely hidden_ to MiGS clients. Indeed, rendering to any kind of
+surface is achieved through _exactly the same function calls_.
+
+* Second, they may contain a bitmap whose pixel mode doesn't correspond
+to the screen's depth used to display it. For example, the surface might
+contain an 128-grayscale bitmap, while the screen is in RGB24 mode. Some
+conversion must be performed to display the surface. This can either
+happen in the system-specific graphics library (e.g. on OS/2, a single
+Presentation Manager call is used to blit a N-grayscale image to _any_
+kind of window) or in the system-specific part of MiGS (e.g. the X11
+MiGS driver must convert the surface's bitmap into the appropriate _X11
+image_ each time a repaint is requested). Again this must be completely
+hidden to MiGS clients
+
+Surfaces have also a few fields that are only used when displaying them
+in Windows :
+
+a title string::
+
+
+This is simply a text string that is displayed on the title bar of the
+surface's window. It can also appear at the top or bottom of full-screen
+surfaces if the MiGS driver supports it. The title string can be changed
+with a call to `grSetTitle`, and is ignored for simple surfaces.
+
+
+a refresh flag::
+
+
+This boolean flag is only used for window surfaces, and some fullscreen
+ones (depending on the driver implementation). When set, it indicates
+that each glyph image blit must be displayed immediately. By default,
+this flag is set to False, which means that demo programs must call the
+`grRefreshSurface(surface)` function to display the whole contents of a
+surface once it has been updated.
+
+The refresh flag can be set with `grSetSurfaceRefresh(surface,flag)`.
+Note that a single surface rectangle can be forced to be displayed with
+a call to `grRefreshRectangle(surface,x,y,w,h)` at any time.
+
+
+=== 4. Devices :
+
+
+As said before, each device is in charge of displaying a surface in a
+given window or screen. Each device is managed through a very simple
+driver, described to MiGS through a very simple "grDevice" structure.
+
+A grDevice contains, among other things, pointers to the functions used
+to:
+
+- refresh/display a given rectangle of the surface to the
+window/screen
+- listen events (key presses and mouse) and send them back to client
+apps. 
+- for windowed devices, update the title bar.
+
+As said before, this is a highly minimalist system. 
+
+
+== III - Important implementation issues :
+
+
+=== 1. Display surface negotiation:
+
+A display surface is created with the function `grNewScreenSurface` which
+takes parameters indicating which device should be used, the pixel
+dimensions of the requested surface, as well as its pixel mode.
+
+Because of some device-specific limitations, the resulting surface's
+properties might not match exactly those requested for the call. Hence,
+a developer should *always take care* of reading a new display surface's
+*bitmap* descriptor in order to get its _real_ dimensions, pixel mode
+and eventually number of grays.
+
+The function `grNewSurface` will create a memory surface with the
+corresponding bitmap.
+
+The function `grNewBitmapSurface` will create a surface from a
+pre-existing bitmap. This is useful to draw text on loaded images, for
+example.
+
+Any surface (display or not) is destroyed with `grDoneSurface`.
+
+
+=== 2. Supporting 8-bit grayscale mode :
+
+
+It is important, for the debugging of FreeType anti-aliased renderer(s),
+that *_++_++all++_++ devices should support the 8-bit gray mode_*. The
+number of gray levels can be fixed or negotiated as required by
+implementation-specific issues.
+
+As most existing devices do not provide direct support for such a mode,
+each 8-bit surface must thus contain :
+
+- an internal N-grayscale bitmap, used as the target of all glyph
+drawings +
+- its own device-specific "image", which matches the display depth.
+
+Each time the device's "refresh++_++rect" function is called, it should
+then : +
+- convert the grayscales within the bitmap's rectangle into the image's
+buffer and format. +
+- display the corresponding image rectangle.
+
+This scheme is used, for example, by the X11 device.
+
