@@ -1,0 +1,62 @@
+= FTVIEW
+:revdate: March 2026
+
+== NAME
+
+ftview - simple glyph viewer
+
+== SYNOPSIS
+
+*ftview* ++[++_options_++]++ ++[++_pt_++]++ _font . . ._
+
+== DESCRIPTION
+
+*ftview* displays all glyphs of a font, allowing changes of various
+rendering and hinting parameters interactively.
+
+*pt*::
+  The point size for the given resolution. If resolution is 72dpi, this
+  directly gives the ppem value (pixels per EM).
+*font*::
+  The font file(s) to display. For Type 1 font files, ftview also tries
+  to attach the corresponding metrics file (with extension ++`++.afm' or
+  ++`++.pfm').
+
+This program is part of the FreeType demos package.
+
+== OPTIONS
+
+**-d** __W__**x**__H__**++[++x**__D++]++__::
+  Set the window width to _W_ px, the height to _H_ px, and optionally
+  the depth to _D_ bpp (default: 640x480x24).
+**-r** __r__::
+  Use resolution _r_ dpi (default: 72dpi).
+**-f** __index__::
+  Specify first index to display (default: 0).
+**-e** __enc__::
+  Specify encoding tag (default: no encoding). Common values: *unic*
+  (Unicode), *symb* (symbol), *ADOB* (Adobe standard), *ADBC* (Adobe
+  custom), or a numeric charmap index.
+**-m** __text__::
+  Use _text_ for rendering.
+**-l** __mode__::
+  Set start-up rendering mode (0 ++<++= _mode_ ++<++= 6). This
+  corresponds to the keystrokes 'A' to 'G' within the program.
+**-L** __W1__**,**__W2__**,**__W3__**,**__W4__**,**__W5__::
+**-L** __Rx__**,**__Ry__**,**__Gx__**,**__Gy__**,**__Bx__**,**__By__::
+
+Depending on the implemented subpixel rendering method and the number of
+provided arguments, set either five LCD filter weights or six subpixel
+coordinates (as specified in functions
+*FT++_++Library++_++SetLcdFilterWeights* or
+*FT++_++Library++_++SetLcdGeometry* respectively).
+
+**-k** __keys__::
+  Emulate sequence of keystrokes upon start-up. If the keystrokes
+  contain 'q', the program operates in batch mode. Function keys F__x__
+  are mapped to character codes 0xF__x__; as an example, *-k
+  $'++\++xF3q'* is function key 'F3' followed by character 'q'.
+*-p*::
+  Preload file in memory to simulate memory-mapping.
+*-v*::
+  Show version.
