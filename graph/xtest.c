@@ -1,7 +1,7 @@
 #include "graph.h"
 #include "grfont.h"  /* dispara^itra bientot */
 #include <stdio.h>
-
+#include <stdlib.h>
 
 static
 void Panic( const char*  message )
